@@ -22,5 +22,7 @@ import java.util.Iterator;
 
 public interface MusicProviderSource {
     String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
+    String CUSTOM_METADATA_TRACK_LANGUAGE = "__LANGUAGE__";
+    String CUSTOM_METADATA_TRACK_COUNTRY = "__COUNTRY__";
     Iterator<MediaMetadataCompat> iterator();
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">De Gesproken Gazet</string>
+    <string name="error_no_metadata">Kan de meta-data niet ophalen.</string>
+    <string name="browse_genres">Genres</string>
+    <string name="browse_genre_subtitle">Liedjes per genre</string>
+    <string name="favorite">Favoriet</string>
+    <string name="browse_musics_by_genre_subtitle">%1$s liedjes</string>
+    <string name="random_queue_title">Willekeurige muziek</string>
+    <string name="error_no_connection">Kan niet connecteren met internet. Controleer uw internettoegang.</string>
+    <string name="error_loading_media">Kan de media niet laden</string>
+    <string name="error_lang_not_supported">Uw telefoon heeft geen ondersteuning voor Nederlandse spraak.</string>
+    <string name="error_lang_missing_data">Uw telefoon ontbreekt data om tekst om te kunnen zetten in spraak.</string>
+    <string name="error_download_failed">Er kon geen verbinding worden gemaakt met internet. Heeft u wel toegang tot internet?</string>
+    <string name="error_tts_timeout">De tekst-naar-spraak functionaliteit kon niet worden geinitialiseerd.</string>
+    <string name="error_tts_interrupted">Onderbroken terwijl de tekst-naar-spraak functionaliteit werd geinitialiseerd.</string>
+    <string name="error_tts_queue_refused">Tekst-naar-spraak functionaliteit heeft opdracht gewijgerd.</string>
+    <string name="label_pause">Pauze</string>
+    <string name="play_item">Speel af</string>
+    <string name="play_pause">Afspelen of pauze</string>
+    <string name="skip_next">Volgende</string>
+    <string name="skip_prev">Vorige</string>
+    <string name="loading">Laden ...</string>
+    <string name="label_play">Afspelen</string>
+    <string name="label_previous">Vorige</string>
+    <string name="label_next">Volgende</string>
+</resources>

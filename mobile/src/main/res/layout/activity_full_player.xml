@@ -25,8 +25,9 @@ limitations under the License.
         android:id="@+id/background_image"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:scaleType="centerCrop"
-        android:contentDescription="@string/background_image_str" />
+        android:background="@drawable/bg_fullscreen"
+        android:contentDescription="@string/background_image_str"
+        android:scaleType="centerCrop" />
 
     <RelativeLayout
         android:layout_width="fill_parent"
@@ -42,7 +43,7 @@ limitations under the License.
             android:layout_above="@+id/line2"
             android:ellipsize="end"
             android:gravity="center_horizontal"
-            android:maxLines="1"
+            android:maxLines="3"
             android:shadowColor="@android:color/black"
             android:shadowRadius="20"
             android:textAppearance="?android:attr/textAppearanceLarge"
@@ -86,14 +87,15 @@ limitations under the License.
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp">
+                android:layout_height="48dp"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/startText"
                     android:layout_width="wrap_content"
                     android:layout_height="fill_parent"
-                    android:layout_marginStart="@dimen/text_view_margin"
                     android:layout_alignParentStart="true"
+                    android:layout_marginStart="@dimen/text_view_margin"
                     android:gravity="center_vertical"
                     android:maxLines="1"
                     android:textColor="@android:color/white" />
@@ -106,17 +108,17 @@ limitations under the License.
                     android:layout_gravity="center"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    android:layout_toStartOf="@+id/endText"
-                    android:layout_toEndOf="@+id/startText" />
+                    android:layout_toEndOf="@+id/startText"
+                    android:layout_toStartOf="@+id/endText" />
 
                 <TextView
                     android:id="@+id/endText"
                     android:layout_width="wrap_content"
                     android:layout_height="fill_parent"
-                    android:layout_marginEnd="@dimen/end_text_margin"
                     android:layout_alignParentEnd="true"
-                    android:gravity="center_vertical"
                     android:layout_alignWithParentIfMissing="true"
+                    android:layout_marginEnd="@dimen/end_text_margin"
+                    android:gravity="center_vertical"
                     android:maxLines="1"
                     android:textColor="@android:color/white" />
 

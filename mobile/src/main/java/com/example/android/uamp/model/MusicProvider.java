@@ -31,8 +31,10 @@ import com.example.android.uamp.utils.MediaIDHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -53,7 +55,7 @@ public class MusicProvider {
 
     // Categorized caches for music track data:
     private ConcurrentMap<String, List<MediaMetadataCompat>> mMusicListByGenre;
-    private final ConcurrentMap<String, MutableMediaMetadata> mMusicListById;
+    private final Map<String, MutableMediaMetadata> mMusicListById;
 
     private final Set<String> mFavoriteTracks;
 
@@ -73,7 +75,7 @@ public class MusicProvider {
     public MusicProvider(MusicProviderSource source) {
         mSource = source;
         mMusicListByGenre = new ConcurrentHashMap<>();
-        mMusicListById = new ConcurrentHashMap<>();
+        mMusicListById = Collections.synchronizedMap(new LinkedHashMap<String, MutableMediaMetadata>()); //preserve order
         mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     }
 
@@ -159,7 +161,7 @@ public class MusicProvider {
         query = query.toLowerCase(Locale.US);
         for (MutableMediaMetadata track : mMusicListById.values()) {
             if (track.metadata.getString(metadataField).toLowerCase(Locale.US)
-                .contains(query)) {
+                    .contains(query)) {
                 result.add(track.metadata);
             }
         }
@@ -276,7 +278,10 @@ public class MusicProvider {
                 buildListsByGenre();
                 mCurrentState = State.INITIALIZED;
             }
-        } finally {
+        } catch (RuntimeException ex) {
+            LogHelper.w(TAG, ex.getMessage());
+        }
+        finally {
             if (mCurrentState != State.INITIALIZED) {
                 // Something bad happened, so we reset state to NON_INITIALIZED to allow
                 // retries (eg if the network connection is temporary unavailable)
@@ -294,7 +299,15 @@ public class MusicProvider {
         }
 
         if (MEDIA_ID_ROOT.equals(mediaId)) {
-            mediaItems.add(createBrowsableMediaItemForRoot(resources));
+//            mediaItems.add(createBrowsableMediaItemForRoot(resources));
+
+            // Do not browse the root (as per above), but immediately return (non-browseable) children
+            // that are the news articles themselves.
+            List<MediaBrowserCompat.MediaItem> music = new ArrayList<>(mMusicListById.size());
+            for (MutableMediaMetadata mutableMetadata: mMusicListById.values()) {
+                music.add(createMediaItem(mutableMetadata.metadata));
+            }
+            return music;
 
         } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
             for (String genre : getGenres()) {
@@ -326,7 +339,7 @@ public class MusicProvider {
     }
 
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenre(String genre,
-                                                                    Resources resources) {
+                                                                          Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                 .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, genre))
                 .setTitle(genre)

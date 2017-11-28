@@ -1,18 +1,18 @@
- /*
- * Copyright (C) 2014 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/*
+* Copyright (C) 2014 The Android Open Source Project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package com.example.android.uamp;
 
@@ -32,25 +32,18 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
-import com.example.android.uamp.playback.CastPlayback;
-import com.example.android.uamp.playback.LocalPlayback;
-import com.example.android.uamp.playback.Playback;
+import com.example.android.uamp.model.NewsSource;
+import com.example.android.uamp.news.VRTNewsSiteConfiguration;
 import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.playback.QueueManager;
+import com.example.android.uamp.playback.TextToSpeechPlayback;
 import com.example.android.uamp.ui.NowPlayingActivity;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.TvHelper;
 import com.example.android.uamp.utils.WearHelper;
 import com.google.android.gms.cast.framework.CastContext;
-import com.google.android.gms.cast.framework.CastSession;
-import com.google.android.gms.cast.framework.SessionManager;
-import com.google.android.gms.cast.framework.SessionManagerListener;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -144,13 +137,12 @@ public class MusicService extends MediaBrowserServiceCompat implements
     private MediaNotificationManager mMediaNotificationManager;
     private Bundle mSessionExtras;
     private final DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
-    private MediaRouter mMediaRouter;
     private PackageValidator mPackageValidator;
-    private SessionManager mCastSessionManager;
-    private SessionManagerListener<CastSession> mCastSessionManagerListener;
 
     private boolean mIsConnectedToCar;
     private BroadcastReceiver mCarConnectionReceiver;
+    private NewsSource newsSource;
+    private TextToSpeechPlayback playback;
 
     /*
      * (non-Javadoc)
@@ -161,7 +153,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
         super.onCreate();
         LogHelper.d(TAG, "onCreate");
 
-        mMusicProvider = new MusicProvider();
+        newsSource = new NewsSource(this, new VRTNewsSiteConfiguration(this));
+        mMusicProvider = new MusicProvider(newsSource);
 
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
@@ -196,9 +189,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
                     }
                 });
 
-        LocalPlayback playback = new LocalPlayback(this, mMusicProvider);
-        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager,
-                playback);
+        playback = new TextToSpeechPlayback(this, mMusicProvider, new VRTNewsSiteConfiguration(this), queueManager);
+        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager, playback);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(this, "MusicService");
@@ -227,18 +219,6 @@ public class MusicService extends MediaBrowserServiceCompat implements
             throw new IllegalStateException("Could not create a MediaNotificationManager", e);
         }
 
-        int playServicesAvailable =
-                GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
-
-        if (!TvHelper.isTvUiMode(this) && playServicesAvailable == ConnectionResult.SUCCESS) {
-            mCastSessionManager = CastContext.getSharedInstance(this).getSessionManager();
-            mCastSessionManagerListener = new CastSessionManagerListener();
-            mCastSessionManager.addSessionManagerListener(mCastSessionManagerListener,
-                    CastSession.class);
-        }
-
-        mMediaRouter = MediaRouter.getInstance(getApplicationContext());
-
         registerCarConnectionReceiver();
     }
 
@@ -260,6 +240,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
             } else {
                 // Try to handle the intent as a media button event wrapped by MediaButtonReceiver
                 MediaButtonReceiver.handleIntent(mSession, startIntent);
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE);
             }
         }
         // Reset the delay handler to enqueue a message to stop the service if
@@ -291,13 +272,10 @@ public class MusicService extends MediaBrowserServiceCompat implements
         mPlaybackManager.handleStopRequest(null);
         mMediaNotificationManager.stopNotification();
 
-        if (mCastSessionManager != null) {
-            mCastSessionManager.removeSessionManagerListener(mCastSessionManagerListener,
-                    CastSession.class);
-        }
-
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         mSession.release();
+        newsSource.destroy();
+        playback.destroy();
     }
 
     @Override
@@ -433,68 +411,6 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 LogHelper.d(TAG, "Stopping service with delay handler.");
                 service.stopSelf();
             }
-        }
-    }
-
-    /**
-     * Session Manager Listener responsible for switching the Playback instances
-     * depending on whether it is connected to a remote player.
-     */
-    private class CastSessionManagerListener implements SessionManagerListener<CastSession> {
-
-        @Override
-        public void onSessionEnded(CastSession session, int error) {
-            LogHelper.d(TAG, "onSessionEnded");
-            mSessionExtras.remove(EXTRA_CONNECTED_CAST);
-            mSession.setExtras(mSessionExtras);
-            Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
-            mMediaRouter.setMediaSessionCompat(null);
-            mPlaybackManager.switchToPlayback(playback, false);
-        }
-
-        @Override
-        public void onSessionResumed(CastSession session, boolean wasSuspended) {
-        }
-
-        @Override
-        public void onSessionStarted(CastSession session, String sessionId) {
-            // In case we are casting, send the device name as an extra on MediaSession metadata.
-            mSessionExtras.putString(EXTRA_CONNECTED_CAST,
-                    session.getCastDevice().getFriendlyName());
-            mSession.setExtras(mSessionExtras);
-            // Now we can switch to CastPlayback
-            Playback playback = new CastPlayback(mMusicProvider, MusicService.this);
-            mMediaRouter.setMediaSessionCompat(mSession);
-            mPlaybackManager.switchToPlayback(playback, true);
-        }
-
-        @Override
-        public void onSessionStarting(CastSession session) {
-        }
-
-        @Override
-        public void onSessionStartFailed(CastSession session, int error) {
-        }
-
-        @Override
-        public void onSessionEnding(CastSession session) {
-            // This is our final chance to update the underlying stream position
-            // In onSessionEnded(), the underlying CastPlayback#mRemoteMediaClient
-            // is disconnected and hence we update our local value of stream position
-            // to the latest position.
-            mPlaybackManager.getPlayback().updateLastKnownStreamPosition();
-        }
-
-        @Override
-        public void onSessionResuming(CastSession session, String sessionId) {
-        }
-
-        @Override
-        public void onSessionResumeFailed(CastSession session, int error) {
-        }
-
-        @Override
-        public void onSessionSuspended(CastSession session, int reason) {
         }
     }
 }

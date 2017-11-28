@@ -96,6 +96,19 @@ public class QueueManager {
     }
 
     public boolean skipQueuePosition(int amount) {
+        int newIndex = skipQueueNewIndex(amount);
+        if (newIndex == -1 ) {
+            LogHelper.e(TAG, "Cannot increment queue index by ", amount,
+                    ". Current=", mCurrentIndex, " queue length=", mPlayingQueue.size());
+            return false;
+        }
+        else {
+            mCurrentIndex = newIndex;
+            return true;
+        }
+    }
+
+    private int skipQueueNewIndex(int amount) {
         int index = mCurrentIndex + amount;
         if (index < 0) {
             // skip backwards before the first song will keep you on the first song
@@ -105,12 +118,20 @@ public class QueueManager {
             index %= mPlayingQueue.size();
         }
         if (!QueueHelper.isIndexPlayable(index, mPlayingQueue)) {
-            LogHelper.e(TAG, "Cannot increment queue index by ", amount,
-                    ". Current=", mCurrentIndex, " queue length=", mPlayingQueue.size());
-            return false;
+            return -1;
         }
-        mCurrentIndex = index;
-        return true;
+        return index;
+    }
+
+    public MediaSessionCompat.QueueItem peekQueuePosition(int amount) {
+        int newIndex = skipQueueNewIndex(amount);
+        if ( newIndex == -1 ) {
+            return null;
+        }
+        else {
+            return mPlayingQueue.get(newIndex);
+        }
+
     }
 
     public boolean setQueueFromSearch(String query, Bundle extras) {
