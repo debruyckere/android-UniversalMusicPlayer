@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">De Gesproken Gazet</string>
+    <string name="app_name">Gesproken Gazet</string>
     <string name="error_no_metadata">Kan de meta-data niet ophalen.</string>
     <string name="browse_genres">Genres</string>
     <string name="browse_genre_subtitle">Liedjes per genre</string>
