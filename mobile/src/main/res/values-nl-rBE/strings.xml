@@ -24,4 +24,26 @@
     <string name="label_play">Afspelen</string>
     <string name="label_previous">Vorige</string>
     <string name="label_next">Volgende</string>
+    <string name="casting_to_device">Casting naar %1$s</string>
+    <string name="stop_casting">Stop Casting</string>
+    <string name="currently_playing_song">Huidig liedje</string>
+    <string name="currently_playing_artist">Artiest van huidig liedje</string>
+    <string name="currently_playing_extra_info">Meer info huidig liedje</string>
+    <string name="touch_to_cast">Tik om te connecteren met Google Cast</string>
+    <string name="cast_application_id">CC1AD845</string>
+    <string name="home_title">Home</string>
+    <string name="related_content_header">Dit vind je misschien ook leuk</string>
+    <string name="action_listen">Luisteren</string>
+    <string name="open_content_drawer">Hoofdmenu</string>
+    <string name="close_content_drawer">Sluit menu</string>
+    <string name="drawer_allmusic_title">VRT News</string>
+    <string name="drawer_playlists_title">Playlists</string>
+    <string name="now_playing">Speelt nu af</string>
+    <string name="background_image_str">Background image for album art</string>
+    <string name="search_queue_title">Zoekresultaten</string>
+    <string name="no_search_results">Geen zoekresultaten</string>
+    <string name="media_route_menu_title">Speel op...</string>
+    <string name="nav_header_username">Gebruikersnaam</string>
+    <string name="notification_channel">UAMP_Channel_ID</string>
+    <string name="notification_channel_description">Channel ID for UAMP</string>
 </resources>

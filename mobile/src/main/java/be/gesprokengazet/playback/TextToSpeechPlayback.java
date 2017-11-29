@@ -361,6 +361,7 @@ public final class TextToSpeechPlayback implements Playback {
                     }
                     // Default dutch voice is a tad too fast to be pleasing for the long texts we're reading
                     mTextToSpeech.setSpeechRate(0.95f);
+                    mTextToSpeech.setPitch(0.8f); // Speak a bit lower, like they do on radio and tv
                 }
             }
         } catch (InterruptedException e) {

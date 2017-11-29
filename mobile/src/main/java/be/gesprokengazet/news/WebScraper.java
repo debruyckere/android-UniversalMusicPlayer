@@ -43,6 +43,7 @@ class WebScraper<T extends WebResource> {
      */
     @SuppressLint("SetJavaScriptEnabled")
     void scrape(final T resource, final String javaScript, final WebResourceCompleted<T> callBack) {
+        WebView.setWebContentsDebuggingEnabled(false);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setBlockNetworkImage(true); //reduce loaded data
         mWebView.removeJavascriptInterface("ContentScraper");
