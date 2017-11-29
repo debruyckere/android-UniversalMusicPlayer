@@ -9,11 +9,10 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import be.gesprokengazet.R;
-
-import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import be.gesprokengazet.R;
 
 /**
  * Scrapes the news website to obtain a list of articles URL's, and to download the content of
@@ -50,8 +49,7 @@ class WebScraper<T extends WebResource> {
         mWebView.addJavascriptInterface(new JavascriptCallback<>(resource, callBack), "ContentScraper");
         mWebView.setWebViewClient(new WebViewClient() {
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                String message = MessageFormat.format(mResources.getString(R.string.error_no_connection), errorCode);
-                callBack.onError(resource, message);
+                callBack.onError(resource, mResources.getString(R.string.error_no_connection));
             }
 
             @Override
